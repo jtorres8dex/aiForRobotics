@@ -1,0 +1,3 @@
+[submodule "berkeley_pacman"]
+	path = berkeley_pacman
+	url = https://github.com/jeff-hykin/berkeley_pacman.git
