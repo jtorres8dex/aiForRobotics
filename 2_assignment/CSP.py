@@ -2,13 +2,13 @@ from graph import Graph
 
 POSSIBLE_COLORS = ['green', 'red', 'blue']
 
-class ConstraintSatisfactionProblem:
+class CSP:
+    """Base class for a Constraint Satisfaction Problem """
     def __init__(self, aMap):
         self.mapAsGraph = Graph(aMap)  # Convert adjacency list to a graph
         self.variables = list(self.mapAsGraph.graph.keys())  # Regions (Nodes)
         self.domains = {region: POSSIBLE_COLORS[:] for region in self.variables}  # Colors for each region
-        self.assignment = {}  # Stores the final colors assigned to each region
-        print(self.mapAsGraph)  
+        self.assignment = {}  # Stores the final colors assigned to each region 
 
     def is_valid_assignment(self, region, color):
         """Check if assigning `color` to `region` is valid (neighbors must have different colors)."""
@@ -18,7 +18,7 @@ class ConstraintSatisfactionProblem:
         return True
 
     def backtrack(self):
-        """Recursive backtracking algorithm to solve the CSP."""
+        """Recursive backtracking algorithm to solve the CSP"""
         if len(self.assignment) == len(self.variables):
             return self.assignment  # Solution found
         
@@ -27,11 +27,11 @@ class ConstraintSatisfactionProblem:
 
         for color in self.domains[region]:
             if self.is_valid_assignment(region, color):
-                self.assignment[region] = color  # Assign the color
-                result = self.backtrack()  # Recur to assign the next region
+                self.assignment[region] = color  
+                result = self.backtrack()  # recur to assign the next region
                 if result:
                     return result  # Solution found
-                del self.assignment[region]  # Backtrack
+                del self.assignment[region]  # backtrack if dead end
         
         return None  # No solution found
 
@@ -51,9 +51,6 @@ australia = {
     'T': []    
 }
 
-variables = list(australia.keys())
-domains = {region: POSSIBLE_COLORS[:] for region in variables}  # Colors for each region
-
-csp = ConstraintSatisfactionProblem(australia)
+csp = CSP(australia)
 solution = csp.solve()
 print("\nSolution (Coloring):", solution)

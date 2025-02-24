@@ -1,35 +1,36 @@
-import numpy as np 
-# from pydantic import BaseModel, ConfigDict
-
 class Node:
-    def __init__(self, val=None, neighbors=set()):
+    def __init__(self, val=None, neighbors=None):
         self.val = val
-        self.neighbors = neighbors
-
+        self.neighbors = set(neighbors) if neighbors else set()
+    
     def __eq__(self, other):
         return self.val == other.val
-
+    
     def __str__(self):
         return f"Node {self.val} has {len(self.neighbors)} neighbors."
+    
+    def setVal(self, val):
+        self.val = val
+    
+    def setNeighbors(self, neighbors):
+        self.neighbors = set(neighbors)
 
-    def __getstate__(self):
-        pass
-        
 
-class Graph():
-
+class Graph:
     def __init__(self, graph={}):
-        self.numNodes: int = 0
-        self.graph: dict[str, list] = {}
+        self.graph = {}
 
-        # if provided a graph in form of dict, populate it 
-        if graph:
-            for val, neighbors in graph.items():
-                self.graph[val] = neighbors                
-        else:
-            self.graph = {}
-        print(self.graph)
-        self.numNodes = len(self.graph)            
+        
+        all_nodes = set(graph.keys())  # Explicitly defined nodes
+        for neighbors in graph.values():
+            all_nodes.update(neighbors)  # Add neighbor nodes
+
+        # Initialize graph with empty neighbor lists
+        for node in all_nodes:
+            self.graph[node] = set(graph.get(node, []))  # Ensure each node has a neighbor list
+
+        self.numNodes = len(self.graph)
+        self.nodeVals = sorted(self.graph.keys())  # Sort for consistent indexing
 
     def __eq__(self, other):
         """Equality of graph denoted as same size and topology"""
@@ -41,55 +42,26 @@ class Graph():
         return True
     
     def __str__(self):
-        """For now, just print adjacency matrix"""
+        """Print adjacency matrix"""
         adj = self.getAdjacencyMatrix()
-        _str = ""
-        for row in adj:
-            # _str += row
-            # _str.append(row)
-            for col in row:
-                _str += (col)
-            _str += "\n"
-        return _str
-    
-    ### Node Methods ###
-    def addNode(self, node: Node):
-        if node.val in self.graph.keys():
-            raise ValueError(f"Node {node.val} already exists in graph!")
-        self.graph[node.val] = node.neighbors
-        self.numNodes += 1
-
-    def removeNode(self, val: any):
-        if not val in self.graph.keys():
-            raise ValueError(f"{val} is not in graph!")
-        del self.graph[val]
-
-    def setNode(self, val: any, neighbors: set):
-        if val not in self.graph.keys():
-            raise ValueError(f"Tried setting node {val} which DNE")
-        self.graph[val] = neighbors
-
-    ### Graph Methods ###
-    def getAdjacencyMatrix(self) -> list[list]:
-        """returns adjacency matrix, should be used with nodes of numeric values"""
-        adj = [[]]
-        N = self.numNodes
-        for node, neighbors in self.graph.items():
-            # adjNodes = [node].extend(nieghbors)
-            adj.append(neighbors)
-        return adj
         
-if __name__ == "__main__":
+        if not isinstance(adj, list):
+            raise TypeError(f"ERROR: Expected adj to be a list, but got {type(adj)}")
 
-    g = {
-        'pa': ['nj', 'oh', 'md', 'ny', 'de', 'wv'],
-        'nj': ['pa', 'ny', 'de', 'md'],
-        'md': ['pa', 'nj', 'wv']
-    }
+        return "\n".join(" ".join(map(str, row)) for row in adj)
 
+    def getAdjacencyMatrix(self) -> list[list[int]]:
+        """Returns the adjacency matrix for the graph"""
+        N = self.numNodes
+        adj = [[0 for _ in range(N)] for _ in range(N)]  # Correctly initializes a 2D list
+        node_index = {node: i for i, node in enumerate(self.nodeVals)}  # Maps nodes to indices
 
-emptyGraph = Graph()
+        for node, neighbors in self.graph.items():
+            i = node_index[node]  # Get row index
+            for neighbor in neighbors:
 
-ex = Graph(g)
-print(ex)
+                j = node_index[neighbor]  # Get column index
+                adj[i][j] = 1  # Mark adjacency
+                adj[j][i] = 1  # Ensure symmetry for undirected graphs
 
+        return adj
